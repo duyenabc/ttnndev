@@ -19,6 +19,8 @@ namespace ttnndev.Server.Data
         public DbSet<PhienChat> PhienChats { get; set; }
         public DbSet<NhatKy> NhatKys { get; set; }
         public DbSet<DiemSinhVien> DiemSinhViens { get; set; }
+        public DbSet<TaiLieu> TaiLieus { get; set; }
+        public DbSet<LichHen> LichHens { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
