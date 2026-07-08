@@ -7,48 +7,42 @@ namespace ttnndev.Server.Data
     {
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
+        // Khai báo các DbSets
         public DbSet<NguoiDung> NguoiDungs { get; set; }
         public DbSet<KyThucTap> KyThucTaps { get; set; }
-        public DbSet<LopThucTap> LopThucTaps { get; set; }
-        public DbSet<GhiDanhSinhVien> GhiDanhSinhViens { get; set; }
-        public DbSet<DeTai> DeTais { get; set; }
-        public DbSet<TinNhanChat> TinNhanChats { get; set; }
-        public DbSet<CauHinhDiemLop> CauHinhDiemLops { get; set; }
-        public DbSet<TieuChiRubric> TieuChiRubrics { get; set; }
-        public DbSet<NhomDiem> NhomDiems { get; set; }
-        public DbSet<PhienChat> PhienChats { get; set; }
-        public DbSet<NhatKy> NhatKys { get; set; }
-        public DbSet<DiemSinhVien> DiemSinhViens { get; set; }
+        // ... Thêm các DbSet khác (GhiDanhSinhVien, DeTai, CauHinhNhatKy, v.v.)
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
-            // 1. Cấu hình cho NguoiDung
+            // 1. Áp dụng rule GENERATED ALWAYS AS IDENTITY cho tất cả các bảng
+            modelBuilder.UseIdentityAlwaysColumns();
+
+            // 2. Cấu hình chi tiết cho bảng NguoiDung
             modelBuilder.Entity<NguoiDung>(entity =>
             {
-                entity.HasIndex(u => u.MaDinhDanh).IsUnique();
-                entity.HasIndex(u => u.Email).IsUnique();
+                // Set UNIQUE constraints
+                entity.HasIndex(e => e.MaDinhDanh).IsUnique();
+                entity.HasIndex(e => e.Email).IsUnique();
 
-                // Cấu hình giá trị mặc định cho Database
-                entity.Property(e => e.TrangThaiTaiKhoan).HasDefaultValue("Nhap");
-                entity.Property(e => e.BuocDoiMatKhau).HasDefaultValue(false);
-                entity.Property(e => e.SoLanDangNhapSai).HasDefaultValue(0);
-                entity.Property(e => e.DaXoa).HasDefaultValue(false);
-                entity.Property(e => e.NgayTao).HasDefaultValueSql("CURRENT_TIMESTAMP");
-                entity.Property(e => e.NgayCapNhat).HasDefaultValueSql("CURRENT_TIMESTAMP");
-                entity.Property(e => e.TokenValidFrom).HasColumnType("timestamp with time zone")
-                                                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+                // Ép kiểu tường minh cho CSDL (Tùy chọn, Npgsql tự động map DateTimeOffset sang timestamptz)
+                entity.Property(e => e.NgayTao).HasColumnType("timestamp with time zone");
+                entity.Property(e => e.NgayCapNhat).HasColumnType("timestamp with time zone");
             });
 
-            // 2. Cấu hình các bảng khác giữ nguyên
-            modelBuilder.Entity<GhiDanhSinhVien>()
-                .HasIndex(g => new { g.MaSinhVien, g.MaLop }).IsUnique();
+            // 3. Cấu hình chi tiết cho bảng KyThucTap
+            modelBuilder.Entity<KyThucTap>(entity =>
+            {
+                // Composite Unique Key chặn tạo trùng kỳ thực tập
+                entity.HasIndex(e => new { e.LoaiThucTap, e.HocKy, e.NamHoc, e.MaKhoa }).IsUnique();
 
-            modelBuilder.Entity<LopThucTap>()
-                .HasOne(l => l.GiangVien)
-                .WithMany()
-                .HasForeignKey(l => l.MaGiangVien)
-                .OnDelete(DeleteBehavior.Restrict);
+                // Mapping kiểu DATE thuần túy (không có time)
+                entity.Property(e => e.NgayBatDau).HasColumnType("date");
+                entity.Property(e => e.NgayKetThuc).HasColumnType("date");
+            });
+
+            // --- THỰC HIỆN TƯƠNG TỰ CHO CÁC BẢNG KHÁC ---
         }
     }
 }
