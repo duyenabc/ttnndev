@@ -1,10 +1,16 @@
-// This file allows you to configure ESLint according to your project's needs, so that you
-// can control the strictness of the linter, the plugins to use, and more.
+<template>
+  <div class="dashboard-container">
+    <h1>Chào mừng bạn đến với hệ thống IMS</h1>
+    <p>Đây là trang tổng quan dành cho người dùng đã đăng nhập.</p>
+  </div>
+</template>
 
-// For more information about configuring ESLint, visit https://eslint.org/docs/user-guide/configuring/
+<script setup>
+// Bạn có thể thêm logic ở đây nếu cần
+</script>
 
-module.exports = [
-    {
-        rules: {}
-    }
-];
+<style scoped>
+  .dashboard-container {
+    padding: 20px;
+  }
+</style>

@@ -17,7 +17,6 @@
 
 <script setup>
   import { reactive } from 'vue';
-  import api from '@/api/api';
   import { useRouter } from 'vue-router';
   import { useAuthStore } from '@/stores/auth';
 
@@ -27,10 +26,16 @@
 
   const handleLogin = async () => {
     try {
-      // Gọi API đăng nhập
-      await authStore.login(loginForm);
+      // Sửa lỗi: Thêm dấu } đóng object và ) đóng hàm login
+      await authStore.login({
+        maDinhDanh: loginForm.maDinhDanh,
+        matKhau: loginForm.matKhau
+      });
+
+      // Chuyển hướng sau khi login thành công
       router.push('/dashboard');
     } catch (err) {
+      console.error(err);
       alert("Sai tên đăng nhập hoặc mật khẩu!");
     }
   };

@@ -23,15 +23,27 @@ namespace ttnndev.Server.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            // Cấu hình Unique Constraints cho các trường định danh
-            modelBuilder.Entity<NguoiDung>().HasIndex(u => u.MaDinhDanh).IsUnique();
-            modelBuilder.Entity<NguoiDung>().HasIndex(u => u.Email).IsUnique();
+            // 1. Cấu hình cho NguoiDung
+            modelBuilder.Entity<NguoiDung>(entity =>
+            {
+                entity.HasIndex(u => u.MaDinhDanh).IsUnique();
+                entity.HasIndex(u => u.Email).IsUnique();
 
-            // Cấu hình GhiDanhSinhVien: 1 Sinh viên chỉ ghi danh 1 lần vào 1 lớp
+                // Cấu hình giá trị mặc định cho Database
+                entity.Property(e => e.TrangThaiTaiKhoan).HasDefaultValue("Nhap");
+                entity.Property(e => e.BuocDoiMatKhau).HasDefaultValue(false);
+                entity.Property(e => e.SoLanDangNhapSai).HasDefaultValue(0);
+                entity.Property(e => e.DaXoa).HasDefaultValue(false);
+                entity.Property(e => e.NgayTao).HasDefaultValueSql("CURRENT_TIMESTAMP");
+                entity.Property(e => e.NgayCapNhat).HasDefaultValueSql("CURRENT_TIMESTAMP");
+                entity.Property(e => e.TokenValidFrom).HasColumnType("timestamp with time zone")
+                                                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+            });
+
+            // 2. Cấu hình các bảng khác giữ nguyên
             modelBuilder.Entity<GhiDanhSinhVien>()
                 .HasIndex(g => new { g.MaSinhVien, g.MaLop }).IsUnique();
 
-            // Cấu hình quan hệ xóa (Restrict để tránh lỗi vòng lặp xóa)
             modelBuilder.Entity<LopThucTap>()
                 .HasOne(l => l.GiangVien)
                 .WithMany()

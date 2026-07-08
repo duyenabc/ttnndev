@@ -12,8 +12,8 @@ using ttnndev.Server.Data;
 namespace ttnndev.Server.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260708163656_AddNhatKyAndDiem")]
-    partial class AddNhatKyAndDiem
+    [Migration("20260708190533_FixDefaultValues")]
+    partial class FixDefaultValues
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -306,10 +306,14 @@ namespace ttnndev.Server.Migrations
                         .HasColumnType("character varying(500)");
 
                     b.Property<bool>("BuocDoiMatKhau")
-                        .HasColumnType("boolean");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
 
                     b.Property<bool>("DaXoa")
-                        .HasColumnType("boolean");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
 
                     b.Property<string>("Email")
                         .IsRequired()
@@ -334,10 +338,14 @@ namespace ttnndev.Server.Migrations
                         .HasColumnType("character varying(256)");
 
                     b.Property<DateTimeOffset>("NgayCapNhat")
-                        .HasColumnType("timestamp with time zone");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                     b.Property<DateTimeOffset>("NgayTao")
-                        .HasColumnType("timestamp with time zone");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                     b.Property<DateTimeOffset?>("NgayXoa")
                         .HasColumnType("timestamp with time zone");
@@ -347,15 +355,19 @@ namespace ttnndev.Server.Migrations
                         .HasColumnType("character varying(20)");
 
                     b.Property<short>("SoLanDangNhapSai")
-                        .HasColumnType("smallint");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("smallint")
+                        .HasDefaultValue((short)0);
 
                     b.Property<DateTimeOffset>("TokenValidFrom")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("TrangThaiTaiKhoan")
                         .IsRequired()
+                        .ValueGeneratedOnAdd()
                         .HasMaxLength(20)
-                        .HasColumnType("character varying(20)");
+                        .HasColumnType("character varying(20)")
+                        .HasDefaultValue("Nhap");
 
                     b.Property<string>("VaiTro")
                         .IsRequired()

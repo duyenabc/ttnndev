@@ -2,22 +2,26 @@
   <el-container class="layout-container">
     <el-aside width="200px" class="aside">
       <div class="logo">IMS Management</div>
-      <el-menu router :default-active="$route.path">
+
+      <el-menu router :default-active="$route.path" class="custom-menu">
         <el-menu-item index="/dashboard">
-          <el-icon><Monitor /></el-icon> Dashboard
+          <el-icon><Monitor /></el-icon> <span>Tổng quan</span>
         </el-menu-item>
-        <el-menu-item index="/diaries">
-          <el-icon><Document /></el-icon> Nhật ký
+
+        <el-menu-item v-if="userRole === 'SinhVien'" index="/diaries">
+          <el-icon><Document /></el-icon> <span>Nhật ký thực tập</span>
         </el-menu-item>
-        <el-menu-item index="/scores">
-          <el-icon><Star /></el-icon> Điểm số
+
+        <el-menu-item v-if="userRole === 'GiangVien'" index="/scores">
+          <el-icon><Star /></el-icon> <span>Quản lý điểm số</span>
         </el-menu-item>
       </el-menu>
     </el-aside>
 
     <el-container>
       <el-header class="header">
-        <el-button link @click="logout">Đăng xuất</el-button>
+        <span style="margin-right: 15px;">Xin chào, {{ authStore.user?.hoTen }}</span>
+        <el-button link @click="handleLogout">Đăng xuất</el-button>
       </el-header>
       <el-main>
         <router-view />
@@ -27,12 +31,20 @@
 </template>
 
 <script setup>
-import { Monitor, Document, Star } from '@element-plus/icons-vue';
+  import { computed } from 'vue';
+  import { Monitor, Document, Star } from '@element-plus/icons-vue';
+  import { useAuthStore } from '@/stores/auth';
+  import { useRouter } from 'vue-router';
 
-const logout = () => {
-  localStorage.removeItem('token');
-  window.location.href = '/login';
-};
+  const authStore = useAuthStore();
+  const router = useRouter();
+
+  // Lấy role từ store một cách an toàn
+  const userRole = computed(() => authStore.user?.vaiTro);
+
+  const handleLogout = () => {
+    authStore.logout();
+  };
 </script>
 
 <style scoped>
@@ -59,7 +71,7 @@ const logout = () => {
     justify-content: flex-end;
   }
 
-  .el-menu {
+  .custom-menu {
     border: none;
     background-color: #304156;
   }
@@ -68,8 +80,8 @@ const logout = () => {
     color: #bfcbd9;
   }
 
-    .el-menu-item:hover {
-      background-color: #263445;
-      color: white;
+    .el-menu-item.is-active {
+      background-color: #263445 !important;
+      color: #409eff;
     }
 </style>
