@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="ttnndev.client/ttnndev.client.esproj">
+    <Build />
+    <Deploy />
+  </Project>
+  <Project Path="ttnndev.Server/ttnndev.Server.csproj" />
+</Solution>
