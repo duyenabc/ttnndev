@@ -20,7 +20,7 @@ namespace ttnndev.Server.Migrations
                 .HasAnnotation("ProductVersion", "8.0.28")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
-            NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
+            NpgsqlModelBuilderExtensions.UseIdentityAlwaysColumns(modelBuilder);
 
             modelBuilder.Entity("ttnndev.Server.Models.CauHinhDiemLop", b =>
                 {
@@ -28,7 +28,7 @@ namespace ttnndev.Server.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("MaCauHinh"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityAlwaysColumn(b.Property<int>("MaCauHinh"));
 
                     b.Property<int>("MaLop")
                         .HasColumnType("integer");
@@ -52,7 +52,7 @@ namespace ttnndev.Server.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("MaDeTai"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityAlwaysColumn(b.Property<int>("MaDeTai"));
 
                     b.Property<bool>("KhoaChinhSua")
                         .HasColumnType("boolean");
@@ -88,7 +88,7 @@ namespace ttnndev.Server.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("MaDiem"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityAlwaysColumn(b.Property<int>("MaDiem"));
 
                     b.Property<decimal>("DiemSo")
                         .HasColumnType("numeric");
@@ -118,7 +118,7 @@ namespace ttnndev.Server.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("MaGhiDanh"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityAlwaysColumn(b.Property<int>("MaGhiDanh"));
 
                     b.Property<string>("GhiDanhBang")
                         .IsRequired()
@@ -157,8 +157,7 @@ namespace ttnndev.Server.Migrations
 
                     b.HasIndex("MaLop");
 
-                    b.HasIndex("MaSinhVien", "MaLop")
-                        .IsUnique();
+                    b.HasIndex("MaSinhVien");
 
                     b.ToTable("GhiDanhSinhVien");
                 });
@@ -169,7 +168,7 @@ namespace ttnndev.Server.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("MaKy"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityAlwaysColumn(b.Property<int>("MaKy"));
 
                     b.Property<bool>("DaKhoaSoDiem")
                         .HasColumnType("boolean");
@@ -185,14 +184,18 @@ namespace ttnndev.Server.Migrations
                     b.Property<int?>("KhoaBoi")
                         .HasColumnType("integer");
 
+                    b.Property<string>("LoaiThucTap")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
                     b.Property<int>("MaGiaoVuTao")
                         .HasColumnType("integer");
 
-                    b.Property<int>("MaKhoa")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("MaLoaiThucTap")
-                        .HasColumnType("integer");
+                    b.Property<string>("MaKhoa")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
 
                     b.Property<string>("NamHoc")
                         .IsRequired()
@@ -200,10 +203,10 @@ namespace ttnndev.Server.Migrations
                         .HasColumnType("character varying(9)");
 
                     b.Property<DateTime>("NgayBatDau")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("date");
 
                     b.Property<DateTime>("NgayKetThuc")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("date");
 
                     b.Property<DateTimeOffset?>("NgayKhoaSoDiem")
                         .HasColumnType("timestamp with time zone");
@@ -217,17 +220,20 @@ namespace ttnndev.Server.Migrations
                     b.Property<short>("SoNgayCanhBaoSom")
                         .HasColumnType("smallint");
 
-                    b.Property<string>("TrangThaiCongBo")
+                    b.Property<string>("TenKy")
                         .IsRequired()
-                        .HasMaxLength(10)
-                        .HasColumnType("character varying(10)");
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
 
-                    b.Property<string>("TrangThaiKy")
+                    b.Property<string>("TrangThai")
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
 
                     b.HasKey("MaKy");
+
+                    b.HasIndex("LoaiThucTap", "HocKy", "NamHoc", "MaKhoa")
+                        .IsUnique();
 
                     b.ToTable("KyThucTap");
                 });
@@ -238,7 +244,7 @@ namespace ttnndev.Server.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityAlwaysColumn(b.Property<int>("Id"));
 
                     b.Property<int>("GiangVienId")
                         .HasColumnType("integer");
@@ -280,7 +286,7 @@ namespace ttnndev.Server.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("MaLop"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityAlwaysColumn(b.Property<int>("MaLop"));
 
                     b.Property<bool>("GhiDanhMo")
                         .HasColumnType("boolean");
@@ -338,21 +344,18 @@ namespace ttnndev.Server.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("MaNguoiDung"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityAlwaysColumn(b.Property<int>("MaNguoiDung"));
 
                     b.Property<string>("AnhDaiDien")
+                        .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
 
                     b.Property<bool>("BuocDoiMatKhau")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false);
+                        .HasColumnType("boolean");
 
                     b.Property<bool>("DaXoa")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false);
+                        .HasColumnType("boolean");
 
                     b.Property<string>("Email")
                         .IsRequired()
@@ -373,42 +376,34 @@ namespace ttnndev.Server.Migrations
                         .HasColumnType("character varying(20)");
 
                     b.Property<string>("MatKhauHash")
+                        .IsRequired()
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
 
                     b.Property<DateTimeOffset>("NgayCapNhat")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTimeOffset>("NgayTao")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTimeOffset?>("NgayXoa")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("SoDienThoai")
+                        .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
 
                     b.Property<short>("SoLanDangNhapSai")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("smallint")
-                        .HasDefaultValue((short)0);
+                        .HasColumnType("smallint");
 
                     b.Property<DateTimeOffset>("TokenValidFrom")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp with time zone")
-                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("TrangThaiTaiKhoan")
                         .IsRequired()
-                        .ValueGeneratedOnAdd()
                         .HasMaxLength(20)
-                        .HasColumnType("character varying(20)")
-                        .HasDefaultValue("Nhap");
+                        .HasColumnType("character varying(20)");
 
                     b.Property<string>("VaiTro")
                         .IsRequired()
@@ -432,7 +427,7 @@ namespace ttnndev.Server.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("MaNhatKy"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityAlwaysColumn(b.Property<int>("MaNhatKy"));
 
                     b.Property<string>("CongViecDaLam")
                         .IsRequired()
@@ -484,7 +479,7 @@ namespace ttnndev.Server.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("MaNhomDiem"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityAlwaysColumn(b.Property<int>("MaNhomDiem"));
 
                     b.Property<int?>("CauHinhDiemLopMaCauHinh")
                         .HasColumnType("integer");
@@ -509,7 +504,7 @@ namespace ttnndev.Server.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("MaPhien"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityAlwaysColumn(b.Property<long>("MaPhien"));
 
                     b.Property<int>("MaNguoiDung")
                         .HasColumnType("integer");
@@ -528,7 +523,7 @@ namespace ttnndev.Server.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityAlwaysColumn(b.Property<int>("Id"));
 
                     b.Property<string>("DuongDanFile")
                         .IsRequired()
@@ -564,7 +559,7 @@ namespace ttnndev.Server.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("MaTieuChi"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityAlwaysColumn(b.Property<int>("MaTieuChi"));
 
                     b.Property<int>("MaRubric")
                         .HasColumnType("integer");
@@ -584,7 +579,7 @@ namespace ttnndev.Server.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint");
 
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("MaTinNhan"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityAlwaysColumn(b.Property<long>("MaTinNhan"));
 
                     b.Property<string>("LinkThamChieu")
                         .HasMaxLength(500)
@@ -678,11 +673,11 @@ namespace ttnndev.Server.Migrations
                     b.HasOne("ttnndev.Server.Models.NguoiDung", "GiangVien")
                         .WithMany()
                         .HasForeignKey("MaGiangVien")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("ttnndev.Server.Models.KyThucTap", "KyThucTap")
-                        .WithMany("LopThucTaps")
+                        .WithMany()
                         .HasForeignKey("MaKy")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -735,11 +730,6 @@ namespace ttnndev.Server.Migrations
             modelBuilder.Entity("ttnndev.Server.Models.CauHinhDiemLop", b =>
                 {
                     b.Navigation("NhomDiems");
-                });
-
-            modelBuilder.Entity("ttnndev.Server.Models.KyThucTap", b =>
-                {
-                    b.Navigation("LopThucTaps");
                 });
 
             modelBuilder.Entity("ttnndev.Server.Models.LopThucTap", b =>

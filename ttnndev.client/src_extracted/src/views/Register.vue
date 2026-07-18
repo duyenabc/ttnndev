@@ -41,8 +41,7 @@
 <script setup>
   import { reactive } from 'vue';
   import { useRouter } from 'vue-router';
-  import { ElMessage } from 'element-plus';
-  import api from '@/api/api'; // Dùng api instance để tận dụng proxy Vite, tránh lỗi CORS
+  import axios from 'axios'; // Đảm bảo bạn đã import axios hoặc instance api của bạn
 
   const router = useRouter();
   const registerForm = reactive({
@@ -55,12 +54,15 @@
 
   const handleRegister = async () => {
     try {
-      await api.post('/account/register', registerForm);
-      ElMessage.success("Đăng ký thành công! Vui lòng đăng nhập.");
+      // SỬA DÒNG NÀY: Thêm /api/account/ vào đường dẫn
+      await axios.post('http://localhost:5097/api/account/register', registerForm);
+
+      alert("Đăng ký thành công!");
       router.push('/login');
     } catch (err) {
+      // Để biết lỗi cụ thể (ví dụ 400 Bad Request, 500 Server Error), hãy xem console
       console.error(err);
-      ElMessage.error("Đăng ký thất bại: " + (err.response?.data || "Có lỗi xảy ra"));
+      alert("Đăng ký thất bại: " + (err.response?.data || "Có lỗi xảy ra"));
     }
   };
 </script>
