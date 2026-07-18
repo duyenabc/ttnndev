@@ -10,8 +10,18 @@ namespace ttnndev.Server.Data
         // Khai báo các DbSets
         public DbSet<NguoiDung> NguoiDungs { get; set; }
         public DbSet<KyThucTap> KyThucTaps { get; set; }
-        // ... Thêm các DbSet khác (GhiDanhSinhVien, DeTai, CauHinhNhatKy, v.v.)
-
+        public DbSet<LopThucTap> LopThucTaps { get; set; }
+        public DbSet<GhiDanhSinhVien> GhiDanhSinhViens { get; set; }
+        public DbSet<DeTai> DeTais { get; set; }
+        public DbSet<TinNhanChat> TinNhanChats { get; set; }
+        public DbSet<CauHinhDiemLop> CauHinhDiemLops { get; set; }
+        public DbSet<TieuChiRubric> TieuChiRubrics { get; set; }
+        public DbSet<NhomDiem> NhomDiems { get; set; }
+        public DbSet<PhienChat> PhienChats { get; set; }
+        public DbSet<NhatKy> NhatKys { get; set; }
+        public DbSet<DiemSinhVien> DiemSinhViens { get; set; }
+        public DbSet<TaiLieu> TaiLieus { get; set; }
+        public DbSet<LichHen> LichHens { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
