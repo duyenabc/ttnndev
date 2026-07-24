@@ -60,6 +60,11 @@ namespace ttnndev.Server.Controllers
             Create("gv002", "Phạm Văn Chờ", "cho.gv@due.udn.vn", "GiangVien", "ChoKichHoat", null);
             Create("sv002", "Hoàng Thị Nháp", "nhap.sv@due.udn.vn", "SinhVien", "Nhap", null);
             Create("sv003", "Đỗ Văn Khóa", "khoa.sv@due.udn.vn", "SinhVien", "BiKhoa", "Test@1234");
+            // Sinh viên để giảng viên ghi danh vào lớp
+            var sv10 = Create("22120001", "Nguyễn An", "22120001@student.due.udn.vn", "SinhVien", "DangHoatDong", "Test@1234");
+            var sv11 = Create("22120002", "Trần Bình", "22120002@student.due.udn.vn", "SinhVien", "DangHoatDong", "Test@1234");
+            var sv12 = Create("22120003", "Lê Cường", "22120003@student.due.udn.vn", "SinhVien", "DangHoatDong", "Test@1234");
+            var sv13 = Create("22120004", "Phạm Dung", "22120004@student.due.udn.vn", "SinhVien", "DangHoatDong", "Test@1234");
             await _context.SaveChangesAsync();
 
             _context.QuyenGiaoVus.Add(new QuyenGiaoVu
@@ -69,6 +74,34 @@ namespace ttnndev.Server.Controllers
                 NgayCapGanNhat = DateTimeOffset.UtcNow,
                 CapBoiGanNhat = admin.MaNguoiDung
             });
+
+            foreach (var (svUser, lop) in new[] { (sv10, "22CNTT1"), (sv11, "22CNTT1"), (sv12, "22CNTT2"), (sv13, "22CNTT2") })
+            {
+                _context.ThongTinSinhViens.Add(new ThongTinSinhVien
+                {
+                    MaSinhVien = svUser.MaNguoiDung,
+                    MaKhoa = khoa.MaKhoa,
+                    LopSinhHoat = lop
+                });
+            }
+
+            // Kỳ thực tập đang diễn ra để giảng viên tạo lớp
+            if (!await _context.KyThucTaps.AnyAsync())
+            {
+                _context.KyThucTaps.Add(new KyThucTap
+                {
+                    TenKy = "Thực tập tốt nghiệp 2025-2026 HK2",
+                    NamHoc = "2025-2026",
+                    HocKy = "HK2",
+                    LoaiThucTap = "TotNghiep",
+                    NgayBatDau = new DateTime(2026, 1, 5),
+                    NgayKetThuc = new DateTime(2026, 5, 30),
+                    TrangThai = "DangDienRa",
+                    MaGiaoVuTao = gvu.MaNguoiDung,
+                    MaKhoa = "KTTH",
+                    NgayTao = DateTimeOffset.UtcNow
+                });
+            }
             await _context.SaveChangesAsync();
 
             return Ok(new

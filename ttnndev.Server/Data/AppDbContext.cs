@@ -22,6 +22,8 @@ namespace ttnndev.Server.Data
         public DbSet<DiemSinhVien> DiemSinhViens { get; set; }
         public DbSet<TaiLieu> TaiLieus { get; set; }
         public DbSet<LichHen> LichHens { get; set; }
+        public DbSet<Nhom> Nhoms { get; set; }
+        public DbSet<CotDiem> CotDiems { get; set; }
 
         // Tài khoản & phân quyền (E00/E01/E02/E15)
         public DbSet<Khoa> Khoas { get; set; }
@@ -102,6 +104,23 @@ namespace ttnndev.Server.Data
             modelBuilder.Entity<AuditLog>()
                 .HasOne(e => e.DoiTuong).WithMany().HasForeignKey(e => e.MaDoiTuong)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // Slice Giảng viên: Lớp/Nhóm, chấm điểm
+            modelBuilder.Entity<Nhom>()
+                .HasOne(e => e.LopThucTap).WithMany().HasForeignKey(e => e.MaLop)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<GhiDanhSinhVien>()
+                .HasOne(e => e.Nhom).WithMany().HasForeignKey(e => e.MaNhom)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<CotDiem>()
+                .HasOne(e => e.LopThucTap).WithMany().HasForeignKey(e => e.MaLop)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Mỗi (ghi danh, cột điểm) chỉ có 1 bản ghi điểm
+            modelBuilder.Entity<DiemSinhVien>()
+                .HasIndex(e => new { e.MaGhiDanh, e.MaCotDiem }).IsUnique();
         }
     }
 }
