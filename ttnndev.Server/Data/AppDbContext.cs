@@ -22,6 +22,19 @@ namespace ttnndev.Server.Data
         public DbSet<DiemSinhVien> DiemSinhViens { get; set; }
         public DbSet<TaiLieu> TaiLieus { get; set; }
         public DbSet<LichHen> LichHens { get; set; }
+
+        // Tài khoản & phân quyền (E00/E01/E02/E15)
+        public DbSet<Khoa> Khoas { get; set; }
+        public DbSet<BoMon> BoMons { get; set; }
+        public DbSet<ThongTinCanBo> ThongTinCanBos { get; set; }
+        public DbSet<ThongTinSinhVien> ThongTinSinhViens { get; set; }
+        public DbSet<QuyenGiaoVu> QuyenGiaoVus { get; set; }
+        public DbSet<YeuCauTaiKhoan> YeuCauTaiKhoans { get; set; }
+        public DbSet<LichSuImport> LichSuImports { get; set; }
+        public DbSet<AuditLog> AuditLogs { get; set; }
+        public DbSet<RefreshToken> RefreshTokens { get; set; }
+        public DbSet<YeuCauXacThuc> YeuCauXacThucs { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -53,6 +66,42 @@ namespace ttnndev.Server.Data
             });
 
             // --- THỰC HIỆN TƯƠNG TỰ CHO CÁC BẢNG KHÁC ---
+
+            // 4. Cấu hình các bảng tài khoản & phân quyền
+            modelBuilder.Entity<Khoa>().HasIndex(e => e.TenKhoa).IsUnique();
+            modelBuilder.Entity<BoMon>().HasIndex(e => e.TenBoMon).IsUnique();
+            modelBuilder.Entity<ThongTinCanBo>().HasIndex(e => e.MaCanBo).IsUnique();
+            modelBuilder.Entity<ThongTinSinhVien>().HasIndex(e => e.MaSinhVien).IsUnique();
+            modelBuilder.Entity<QuyenGiaoVu>().HasIndex(e => e.MaGiaoVu).IsUnique();
+            modelBuilder.Entity<RefreshToken>().HasIndex(e => e.TokenHash).IsUnique();
+            modelBuilder.Entity<YeuCauXacThuc>().HasIndex(e => e.TokenHash).IsUnique();
+
+            // Tránh multiple cascade paths: các FK phụ dùng Restrict
+            modelBuilder.Entity<QuyenGiaoVu>()
+                .HasOne(e => e.GiaoVu).WithMany().HasForeignKey(e => e.MaGiaoVu)
+                .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<ThongTinCanBo>()
+                .HasOne(e => e.CanBo).WithMany().HasForeignKey(e => e.MaCanBo)
+                .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<ThongTinSinhVien>()
+                .HasOne(e => e.SinhVien).WithMany().HasForeignKey(e => e.MaSinhVien)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<YeuCauTaiKhoan>()
+                .HasOne(e => e.NguoiYeuCau).WithMany().HasForeignKey(e => e.MaNguoiYeuCau)
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<YeuCauTaiKhoan>()
+                .HasOne(e => e.DoiTuong).WithMany().HasForeignKey(e => e.MaDoiTuong)
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<YeuCauTaiKhoan>()
+                .HasOne(e => e.NguoiXuLy).WithMany().HasForeignKey(e => e.MaNguoiXuLy)
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<AuditLog>()
+                .HasOne(e => e.NguoiThucHien).WithMany().HasForeignKey(e => e.MaNguoiThucHien)
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<AuditLog>()
+                .HasOne(e => e.DoiTuong).WithMany().HasForeignKey(e => e.MaDoiTuong)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

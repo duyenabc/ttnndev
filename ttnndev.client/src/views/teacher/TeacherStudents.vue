@@ -83,7 +83,6 @@
 <script setup>
 import { ref, computed } from 'vue';
 import { ElMessage } from 'element-plus';
-import api from '@/api/api';
 
 // Dữ liệu mẫu (Sẽ được thay thế bằng API call tới GhiDanhSinhVien & DeTai)
 const students = ref([
@@ -133,7 +132,7 @@ const handleDecision = async (decision) => {
     selectedStudent.value.trangThaiDeTai = decision;
     ElMessage.success(`Đã đánh giá đề tài: ${decision}`);
     dialogVisible.value = false;
-  } catch (error) {
+  } catch {
     ElMessage.error('Có lỗi xảy ra khi xử lý đề tài');
   }
 };

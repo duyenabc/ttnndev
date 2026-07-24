@@ -27,6 +27,11 @@
             <p class="font-body-md text-on-surface-variant">Hệ thống Quản lý Thực tập</p>
           </div>
 
+          <!-- Thông báo hết phiên (E15.7) -->
+          <p v-if="expiredNotice" class="w-full mb-4 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-body-sm p-3 text-center">
+            Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại
+          </p>
+
           <!-- Form -->
           <form class="w-full space-y-6" @submit.prevent="handleLogin">
             <div class="relative">
@@ -72,7 +77,7 @@
             </button>
 
             <div class="text-center">
-              <a class="font-body-sm font-medium hover:underline" href="#" style="color:#005ea3;">Quên mật khẩu?</a>
+              <router-link class="font-body-sm font-medium hover:underline" to="/forgot-password" style="color:#005ea3;">Quên mật khẩu?</router-link>
             </div>
 
             <p class="text-[12px] text-gray-500 text-center mt-8 leading-relaxed">
@@ -87,8 +92,8 @@
 </template>
 
 <script setup>
-  import { reactive, ref } from 'vue';
-  import { useRouter } from 'vue-router';
+  import { reactive, ref, computed } from 'vue';
+  import { useRouter, useRoute } from 'vue-router';
   import { useAuthStore } from '@/stores/auth';
 
   const loginForm = reactive({ maDinhDanh: '', matKhau: '' });
@@ -96,20 +101,28 @@
   const isSubmitting = ref(false);
   const errorMessage = ref('');
   const router = useRouter();
+  const route = useRoute();
   const authStore = useAuthStore();
+  const expiredNotice = computed(() => route.query.expired === '1');
 
   const handleLogin = async () => {
     errorMessage.value = '';
     isSubmitting.value = true;
     try {
-      await authStore.login({
+      const result = await authStore.login({
         maDinhDanh: loginForm.maDinhDanh,
         matKhau: loginForm.matKhau
       });
-      router.push('/dashboard');
+      // E15.3.6: mật khẩu tạm buộc đổi trước khi vào hệ thống
+      if (result.buocDoiMatKhau) {
+        router.push('/change-password?forced=1');
+        return;
+      }
+      // E15.1.2: điều hướng theo vai trò
+      router.push(result.redirectTo || '/dashboard');
     } catch (err) {
-      console.error(err);
-      errorMessage.value = 'Sai tên đăng nhập hoặc mật khẩu!';
+      errorMessage.value = err.response?.data?.message
+        || 'Mã định danh hoặc mật khẩu không đúng';
     } finally {
       isSubmitting.value = false;
     }
