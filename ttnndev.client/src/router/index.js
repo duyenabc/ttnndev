@@ -21,12 +21,29 @@ const routes = [
       // Sinh viên
       { path: 'diaries', component: () => import('../views/Diaries.vue'), meta: { roles: ['SinhVien'] } },
 
-      // Giảng viên
-      { path: 'scores', component: () => import('../views/Scores.vue'), meta: { roles: ['GiangVien'] } },
+      // Giảng viên (Lớp/Nhóm, Danh sách SV, Chấm điểm, Lịch hướng dẫn)
       {
-        path: 'teacher-students',
-        name: 'TeacherStudents',
-        component: () => import('../views/TeacherStudents.vue'),
+        path: 'teacher/classes',
+        name: 'TeacherClasses',
+        component: () => import('../views/teacher/MyClasses.vue'),
+        meta: { roles: ['GiangVien'] }
+      },
+      {
+        path: 'teacher/classes/:maLop/students',
+        name: 'TeacherClassStudents',
+        component: () => import('../views/teacher/ClassStudents.vue'),
+        meta: { roles: ['GiangVien'] }
+      },
+      {
+        path: 'teacher/classes/:maLop/grading',
+        name: 'TeacherClassGrading',
+        component: () => import('../views/teacher/ClassGrading.vue'),
+        meta: { roles: ['GiangVien'] }
+      },
+      {
+        path: 'teacher/schedule',
+        name: 'TeacherSchedule',
+        component: () => import('../views/teacher/TeacherSchedule.vue'),
         meta: { roles: ['GiangVien'] }
       },
 

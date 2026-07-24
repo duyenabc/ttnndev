@@ -204,8 +204,8 @@
   const allItems = [
     { path: '/dashboard', label: 'Tổng quan', icon: 'dashboard', roles: null },
     { path: '/diaries', label: 'Nhật ký thực tập', icon: 'menu_book', roles: ['SinhVien'] },
-    { path: '/scores', label: 'Quản lý điểm số', icon: 'grade', roles: ['GiangVien'] },
-    { path: '/teacher-students', label: 'Danh sách sinh viên', icon: 'groups', roles: ['GiangVien'] },
+    { path: '/teacher/classes', label: 'Lớp của tôi', icon: 'class', roles: ['GiangVien'] },
+    { path: '/teacher/schedule', label: 'Lịch hướng dẫn', icon: 'event', roles: ['GiangVien'] },
     { path: '/admin/accounts', label: 'Quản lý tài khoản', icon: 'manage_accounts', roles: ['Admin'] },
     { path: '/admin/requests', label: 'Yêu cầu chờ xử lý', icon: 'inbox', roles: ['Admin'] },
     { path: '/giaovu/accounts', label: 'Quản lý tài khoản', icon: 'manage_accounts', roles: ['GiaoVu'] },
@@ -216,7 +216,8 @@
     allItems.filter((item) => !item.roles || item.roles.includes(userRole.value))
   );
 
-  const isActive = (path) => route.path === path;
+  const isActive = (path) =>
+    path === '/dashboard' ? route.path === path : route.path.startsWith(path);
 
   const askLogout = () => {
     menuOpen.value = false;
