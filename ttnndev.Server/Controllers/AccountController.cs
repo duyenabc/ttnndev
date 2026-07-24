@@ -81,6 +81,7 @@ namespace ttnndev.Server.Controllers
                 HoTen = model.HoTen,
                 Email = model.Email,
                 VaiTro = model.VaiTro,
+                SoDienThoai = model.SoDienThoai,
                 TrangThaiTaiKhoan = "Nhap",
                 DaXoa = false
             };

@@ -5,4 +5,5 @@
     public string Email { get; set; }
     public string MatKhau { get; set; }
     public string VaiTro { get; set; } // "SinhVien", "GiangVien",...
+    public string SoDienThoai { get; set; }
 }
