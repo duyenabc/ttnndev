@@ -36,51 +36,84 @@ namespace ttnndev.Server.Controllers
         {
             var actorId = CurrentUserId();
             var loai = model.LoaiYeuCau;
-            if (loai != "CapTaiKhoan" && loai != "KhoaTaiKhoan" && loai != "MoKhoaTaiKhoan")
+            if (loai != "CapTaiKhoan" && loai != "KhoaTaiKhoan" && loai != "MoKhoaTaiKhoan"
+                && loai != "CapQuyenGiaoVu" && loai != "ThuHoiQuyenGiaoVu")
                 return BadRequest(new { message = "Loại yêu cầu không hợp lệ" });
 
             int? maDoiTuong = model.MaDoiTuong;
 
             if (loai == "CapTaiKhoan")
             {
-                // E02.2: tạo user Nháp rồi gửi yêu cầu cấp
-                var m = model.NguoiDungMoi;
-                if (m == null) return BadRequest(new { message = "Thiếu thông tin người dùng" });
-                if (!ManageableRoles.Contains(m.VaiTro))
-                    return BadRequest(new { message = "Vai trò không hợp lệ" });
-                if (string.IsNullOrWhiteSpace(m.MaDinhDanh) || string.IsNullOrWhiteSpace(m.HoTen))
-                    return BadRequest(new { message = "Thiếu mã định danh hoặc họ tên" });
-                if (string.IsNullOrWhiteSpace(m.Email) || !m.Email.Contains('@'))
-                    return BadRequest(new { message = "Email không hợp lệ" });
-                if (await _context.NguoiDungs.AnyAsync(u => u.MaDinhDanh == m.MaDinhDanh && !u.DaXoa))
-                    return BadRequest(new { message = "Mã định danh đã tồn tại" });
-                if (await _context.NguoiDungs.AnyAsync(u => u.Email == m.Email && !u.DaXoa))
-                    return BadRequest(new { message = "Email đã tồn tại" });
+                if (!await CanManageUsersAsync(actorId))
+                    return Forbid();
 
-                var user = new NguoiDung
+                if (maDoiTuong.HasValue)
                 {
-                    MaDinhDanh = m.MaDinhDanh.Trim(),
-                    HoTen = m.HoTen.Trim(),
-                    Email = m.Email.Trim(),
-                    SoDienThoai = m.SoDienThoai,
-                    VaiTro = m.VaiTro,
-                    TrangThaiTaiKhoan = "Nhap",
-                    NgayTao = DateTimeOffset.UtcNow,
-                    NgayCapNhat = DateTimeOffset.UtcNow
-                };
-                _context.NguoiDungs.Add(user);
-                await _context.SaveChangesAsync();
-                maDoiTuong = user.MaNguoiDung;
-                await _audit.LogAsync(actorId, "ThemNguoiDung", user.MaNguoiDung);
+                    var existing = await _context.NguoiDungs
+                        .FirstOrDefaultAsync(u => u.MaNguoiDung == maDoiTuong.Value && !u.DaXoa);
+                    if (existing == null) return NotFound();
+                    if (existing.TrangThaiTaiKhoan != "Nhap")
+                        return BadRequest(new { message = "Chỉ yêu cầu cấp tài khoản ở trạng thái Nháp" });
+                }
+                else
+                {
+                    // E02.2: tạo user Nháp rồi gửi yêu cầu cấp
+                    var m = model.NguoiDungMoi;
+                    if (m == null) return BadRequest(new { message = "Thiếu thông tin người dùng" });
+                    if (!ManageableRoles.Contains(m.VaiTro))
+                        return BadRequest(new { message = "Vai trò không hợp lệ" });
+                    if (string.IsNullOrWhiteSpace(m.MaDinhDanh) || string.IsNullOrWhiteSpace(m.HoTen))
+                        return BadRequest(new { message = "Thiếu mã định danh hoặc họ tên" });
+                    if (string.IsNullOrWhiteSpace(m.Email) || !m.Email.Contains('@'))
+                        return BadRequest(new { message = "Email không hợp lệ" });
+                    if (await _context.NguoiDungs.AnyAsync(u => u.MaDinhDanh == m.MaDinhDanh && !u.DaXoa))
+                        return BadRequest(new { message = "Mã định danh đã tồn tại" });
+                    if (await _context.NguoiDungs.AnyAsync(u => u.Email == m.Email && !u.DaXoa))
+                        return BadRequest(new { message = "Email đã tồn tại" });
+
+                    var user = new NguoiDung
+                    {
+                        MaDinhDanh = m.MaDinhDanh.Trim(),
+                        HoTen = m.HoTen.Trim(),
+                        Email = m.Email.Trim(),
+                        SoDienThoai = m.SoDienThoai,
+                        VaiTro = m.VaiTro,
+                        TrangThaiTaiKhoan = "Nhap",
+                        NgayTao = DateTimeOffset.UtcNow,
+                        NgayCapNhat = DateTimeOffset.UtcNow
+                    };
+                    _context.NguoiDungs.Add(user);
+                    await _context.SaveChangesAsync();
+                    maDoiTuong = user.MaNguoiDung;
+                    await _audit.LogAsync(actorId, "ThemNguoiDung", user.MaNguoiDung);
+                }
             }
             else
             {
                 // Khóa/mở khóa cần lý do
                 if (string.IsNullOrWhiteSpace(model.LyDo))
                     return BadRequest(new { message = "Vui lòng nhập lý do" });
+                if (model.LyDo.Length > 200)
+                    return BadRequest(new { message = "Lý do tối đa 200 ký tự" });
                 if (maDoiTuong == null)
                     return BadRequest(new { message = "Thiếu tài khoản mục tiêu" });
+
+                var target = await _context.NguoiDungs.FirstOrDefaultAsync(u => u.MaNguoiDung == maDoiTuong.Value && !u.DaXoa);
+                if (target == null) return NotFound();
+                if (loai == "KhoaTaiKhoan" && target.TrangThaiTaiKhoan != "DangHoatDong" && target.TrangThaiTaiKhoan != "ChoKichHoat")
+                    return BadRequest(new { message = "Chỉ yêu cầu khóa tài khoản Đang hoạt động hoặc Chờ kích hoạt" });
+                if (loai == "MoKhoaTaiKhoan" && target.TrangThaiTaiKhoan != "BiKhoa")
+                    return BadRequest(new { message = "Chỉ yêu cầu mở khóa tài khoản đang bị khóa" });
+                if ((loai == "CapQuyenGiaoVu" || loai == "ThuHoiQuyenGiaoVu") && target.VaiTro != "GiaoVu")
+                    return BadRequest(new { message = "Chỉ áp dụng quyền cho tài khoản Giáo vụ" });
+                if ((loai == "CapQuyenGiaoVu" || loai == "ThuHoiQuyenGiaoVu") && target.TrangThaiTaiKhoan != "DangHoatDong")
+                    return BadRequest(new { message = "Không thể thay đổi quyền khi tài khoản không hoạt động" });
             }
+
+            var hasPending = await _context.YeuCauTaiKhoans.AnyAsync(r =>
+                r.MaDoiTuong == maDoiTuong && r.LoaiYeuCau == loai && r.TrangThai == "ChoXuLy");
+            if (hasPending)
+                return BadRequest(new { message = "Yêu cầu đang chờ xử lý đã tồn tại" });
 
             var req = new YeuCauTaiKhoan
             {
@@ -98,6 +131,8 @@ namespace ttnndev.Server.Controllers
                 "CapTaiKhoan" => "YeuCauCapTaiKhoan",
                 "KhoaTaiKhoan" => "YeuCauKhoaTaiKhoan",
                 "MoKhoaTaiKhoan" => "YeuCauMoKhoaTaiKhoan",
+                "CapQuyenGiaoVu" => "YeuCauCapQuyenQL",
+                "ThuHoiQuyenGiaoVu" => "YeuCauThuHoiQuyenQL",
                 _ => "YeuCauCapTaiKhoan"
             };
             await _audit.LogAsync(actorId, action, maDoiTuong);
@@ -140,6 +175,7 @@ namespace ttnndev.Server.Controllers
         public async Task<IActionResult> DeleteDraftUser(int id)
         {
             var actorId = CurrentUserId();
+            if (!await CanManageUsersAsync(actorId)) return Forbid();
             var u = await _context.NguoiDungs.FirstOrDefaultAsync(x => x.MaNguoiDung == id && !x.DaXoa);
             if (u == null) return NotFound();
             if (u.TrangThaiTaiKhoan != "Nhap" && u.TrangThaiTaiKhoan != "ChoKichHoat")
@@ -156,6 +192,12 @@ namespace ttnndev.Server.Controllers
             await _audit.LogAsync(actorId, "XoaTaiKhoan", u.MaNguoiDung);
             await _context.SaveChangesAsync();
             return Ok(new { message = $"Đã xóa tài khoản {u.HoTen}" });
+        }
+
+        private async Task<bool> CanManageUsersAsync(int userId)
+        {
+            return await _context.QuyenGiaoVus
+                .AnyAsync(q => q.MaGiaoVu == userId && q.QuyenQuanLyNguoiDung);
         }
 
         private int CurrentUserId()
