@@ -250,6 +250,8 @@ namespace ttnndev.Server.Controllers
             if (u == null) return NotFound();
             if (u.TrangThaiTaiKhoan != "Nhap" && u.TrangThaiTaiKhoan != "ChoKichHoat")
                 return BadRequest(new { message = "Chỉ xóa được tài khoản ở trạng thái Nháp hoặc Chờ kích hoạt" });
+            if (await HasUserBusinessDataAsync(id))
+                return BadRequest(new { message = "Không thể xóa: tài khoản đã phát sinh dữ liệu" });
 
             u.DaXoa = true;
             u.NgayXoa = DateTimeOffset.UtcNow;
@@ -265,9 +267,17 @@ namespace ttnndev.Server.Controllers
             var actorId = CurrentUserId();
             if (!await CanManageAsync()) return Forbid();
             var users = await _context.NguoiDungs
-                .Where(u => model.Ids.Contains(u.MaNguoiDung) && !u.DaXoa
-                    && (u.TrangThaiTaiKhoan == "Nhap" || u.TrangThaiTaiKhoan == "ChoKichHoat"))
+                .Where(u => model.Ids.Contains(u.MaNguoiDung) && !u.DaXoa)
                 .ToListAsync();
+            if (users.Count != model.Ids.Distinct().Count())
+                return BadRequest(new { message = "Danh sách tài khoản không hợp lệ" });
+            if (users.Any(u => u.TrangThaiTaiKhoan != "Nhap" && u.TrangThaiTaiKhoan != "ChoKichHoat"))
+                return BadRequest(new { message = "Chỉ có thể xóa tài khoản đang ở trạng thái Nháp/Chờ kích hoạt" });
+            foreach (var userId in users.Select(u => u.MaNguoiDung))
+            {
+                if (await HasUserBusinessDataAsync(userId))
+                    return BadRequest(new { message = "Không thể xóa: có tài khoản đã phát sinh dữ liệu" });
+            }
             foreach (var u in users)
             {
                 u.DaXoa = true;
@@ -276,6 +286,65 @@ namespace ttnndev.Server.Controllers
             }
             await _context.SaveChangesAsync();
             return Ok(new { message = $"Đã xóa {users.Count} tài khoản", deleted = users.Count });
+        }
+
+        // UC-2.3 - Khóa nhiều tài khoản
+        [HttpPost("users/lock-bulk")]
+        public async Task<IActionResult> LockBulk([FromBody] BulkIdsDto model)
+        {
+            var actorId = CurrentUserId();
+            if (!await CanManageAsync()) return Forbid();
+            if (string.IsNullOrWhiteSpace(model.LyDo))
+                return BadRequest(new { message = "Vui lòng nhập lý do khóa tài khoản" });
+            if (model.LyDo.Length > 200)
+                return BadRequest(new { message = "Lý do tối đa 200 ký tự" });
+
+            var users = await _context.NguoiDungs
+                .Where(u => model.Ids.Contains(u.MaNguoiDung) && !u.DaXoa)
+                .ToListAsync();
+            if (users.Count != model.Ids.Distinct().Count())
+                return BadRequest(new { message = "Danh sách tài khoản không hợp lệ" });
+            if (users.Any(u => u.TrangThaiTaiKhoan != "DangHoatDong" && u.TrangThaiTaiKhoan != "ChoKichHoat"))
+                return BadRequest(new { message = "Chỉ khóa được tài khoản Đang hoạt động hoặc Chờ kích hoạt" });
+
+            foreach (var u in users)
+            {
+                var old = u.TrangThaiTaiKhoan;
+                u.TrangThaiTaiKhoan = "BiKhoa";
+                u.TokenValidFrom = DateTimeOffset.UtcNow;
+                u.NgayCapNhat = DateTimeOffset.UtcNow;
+                await RevokeAllRefreshTokensAsync(u.MaNguoiDung);
+                await _audit.LogAsync(actorId, "KhoaTaiKhoan", u.MaNguoiDung,
+                    giaTriCu: old, giaTriMoi: JsonSerializer.Serialize(new { LyDo = model.LyDo }));
+            }
+            await _context.SaveChangesAsync();
+            return Ok(new { message = $"Đã khóa {users.Count} tài khoản", locked = users.Count });
+        }
+
+        // UC-2.4 - Mở khóa nhiều tài khoản
+        [HttpPost("users/unlock-bulk")]
+        public async Task<IActionResult> UnlockBulk([FromBody] BulkIdsDto model)
+        {
+            var actorId = CurrentUserId();
+            if (!await CanManageAsync()) return Forbid();
+            var users = await _context.NguoiDungs
+                .Where(u => model.Ids.Contains(u.MaNguoiDung) && !u.DaXoa)
+                .ToListAsync();
+            if (users.Count != model.Ids.Distinct().Count())
+                return BadRequest(new { message = "Danh sách tài khoản không hợp lệ" });
+            if (users.Any(u => u.TrangThaiTaiKhoan != "BiKhoa"))
+                return BadRequest(new { message = "Chỉ mở khóa được tài khoản đang bị khóa" });
+
+            foreach (var u in users)
+            {
+                u.TrangThaiTaiKhoan = "DangHoatDong";
+                u.SoLanDangNhapSai = 0;
+                u.KhoaDangNhapDenLuc = null;
+                u.NgayCapNhat = DateTimeOffset.UtcNow;
+                await _audit.LogAsync(actorId, "MoKhoaTaiKhoan", u.MaNguoiDung);
+            }
+            await _context.SaveChangesAsync();
+            return Ok(new { message = $"Đã mở khóa {users.Count} tài khoản", unlocked = users.Count });
         }
 
         // E00.8 - Khóa tài khoản (yêu cầu lý do)
@@ -316,8 +385,7 @@ namespace ttnndev.Server.Controllers
             if (u.TrangThaiTaiKhoan != "BiKhoa")
                 return BadRequest(new { message = "Chỉ mở khóa được tài khoản đang bị khóa" });
 
-            // Nếu chưa từng đặt mật khẩu → quay lại ChoKichHoat, ngược lại DangHoatDong
-            u.TrangThaiTaiKhoan = string.IsNullOrEmpty(u.MatKhauHash) ? "ChoKichHoat" : "DangHoatDong";
+            u.TrangThaiTaiKhoan = "DangHoatDong";
             u.SoLanDangNhapSai = 0;
             u.KhoaDangNhapDenLuc = null;
             u.NgayCapNhat = DateTimeOffset.UtcNow;
@@ -364,6 +432,8 @@ namespace ttnndev.Server.Controllers
             if (u == null) return NotFound();
             if (u.VaiTro != "GiaoVu")
                 return BadRequest(new { message = "Chỉ áp dụng quyền cho tài khoản Giáo vụ" });
+            if (u.TrangThaiTaiKhoan != "DangHoatDong")
+                return BadRequest(new { message = "Không thể thay đổi quyền khi tài khoản không hoạt động" });
 
             var quyen = await _context.QuyenGiaoVus.FirstOrDefaultAsync(q => q.MaGiaoVu == id);
             bool old = quyen?.QuyenQuanLyNguoiDung ?? false;
@@ -479,9 +549,23 @@ namespace ttnndev.Server.Controllers
                 case "MoKhoaTaiKhoan":
                     if (target != null && target.TrangThaiTaiKhoan == "BiKhoa")
                     {
-                        target.TrangThaiTaiKhoan = string.IsNullOrEmpty(target.MatKhauHash) ? "ChoKichHoat" : "DangHoatDong";
+                        target.TrangThaiTaiKhoan = "DangHoatDong";
                         target.NgayCapNhat = DateTimeOffset.UtcNow;
                         await _audit.LogAsync(actorId, "MoKhoaTaiKhoan", target.MaNguoiDung);
+                    }
+                    break;
+                case "CapQuyenGiaoVu":
+                    if (target != null)
+                    {
+                        var result = await SetPermissionAsync(target, true, actorId);
+                        if (result is not null) return result;
+                    }
+                    break;
+                case "ThuHoiQuyenGiaoVu":
+                    if (target != null)
+                    {
+                        var result = await SetPermissionAsync(target, false, actorId);
+                        if (result is not null) return result;
                     }
                     break;
             }
@@ -518,6 +602,8 @@ namespace ttnndev.Server.Controllers
                 "CapTaiKhoan" => "TuChoiCapTaiKhoan",
                 "KhoaTaiKhoan" => "TuChoiKhoaTaiKhoan",
                 "MoKhoaTaiKhoan" => "TuChoiMoKhoaTaiKhoan",
+                "CapQuyenGiaoVu" => "TuChoiCapQuyenQL",
+                "ThuHoiQuyenGiaoVu" => "TuChoiThuHoiQuyenQL",
                 _ => "TuChoiCapTaiKhoan"
             };
             await _audit.LogAsync(actorId, action, r.MaDoiTuong,
@@ -527,6 +613,29 @@ namespace ttnndev.Server.Controllers
         }
 
         // ---------- Helpers ----------
+
+        private async Task<IActionResult?> SetPermissionAsync(NguoiDung target, bool enabled, int actorId)
+        {
+            if (target.VaiTro != "GiaoVu")
+                return BadRequest(new { message = "Chỉ áp dụng quyền cho tài khoản Giáo vụ" });
+            if (target.TrangThaiTaiKhoan != "DangHoatDong")
+                return BadRequest(new { message = "Không thể thay đổi quyền khi tài khoản không hoạt động" });
+
+            var quyen = await _context.QuyenGiaoVus.FirstOrDefaultAsync(q => q.MaGiaoVu == target.MaNguoiDung);
+            bool old = quyen?.QuyenQuanLyNguoiDung ?? false;
+            if (quyen == null)
+            {
+                quyen = new QuyenGiaoVu { MaGiaoVu = target.MaNguoiDung, CapBoiGanNhat = actorId };
+                _context.QuyenGiaoVus.Add(quyen);
+            }
+            quyen.QuyenQuanLyNguoiDung = enabled;
+            quyen.NgayCapGanNhat = DateTimeOffset.UtcNow;
+            quyen.CapBoiGanNhat = actorId;
+
+            await _audit.LogAsync(actorId, enabled ? "CapQuyenQL" : "ThuHoiQuyenQL", target.MaNguoiDung,
+                giaTriCu: old.ToString(), giaTriMoi: enabled.ToString());
+            return null;
+        }
 
         private AccountRequestDto ToRequestDto(YeuCauTaiKhoan r) => new()
         {
@@ -571,6 +680,12 @@ namespace ttnndev.Server.Controllers
             var tokens = await _context.RefreshTokens
                 .Where(t => t.MaNguoiDung == userId && !t.DaThuHoi).ToListAsync();
             foreach (var t in tokens) t.DaThuHoi = true;
+        }
+
+        private async Task<bool> HasUserBusinessDataAsync(int userId)
+        {
+            return await _context.GhiDanhSinhViens.AnyAsync(g => g.MaSinhVien == userId)
+                || await _context.LopThucTaps.AnyAsync(l => l.MaGiangVien == userId);
         }
 
         private int CurrentUserId()
