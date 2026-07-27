@@ -136,7 +136,7 @@
           ElMessage.success('Nộp nhật ký thành công!');
           dialogVisible.value = false;
           fetchDiaries(); // Lấy lại danh sách mới
-        } catch (error) {
+        } catch {
           ElMessage.error('Có lỗi xảy ra khi nộp!');
         } finally {
           isSubmitting.value = false;

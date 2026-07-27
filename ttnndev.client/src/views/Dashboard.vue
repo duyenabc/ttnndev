@@ -98,8 +98,8 @@
       { path: '/diaries', label: 'Nhật ký thực tập', desc: 'Viết & xem nhật ký tuần', icon: 'menu_book' }
     ],
     GiangVien: [
-      { path: '/scores', label: 'Quản lý điểm số', desc: 'Chấm và nhập điểm', icon: 'grade' },
-      { path: '/teacher-students', label: 'Danh sách sinh viên', desc: 'Theo dõi sinh viên', icon: 'groups' }
+      { path: '/teacher/classes', label: 'Lớp của tôi', desc: 'Quản lý lớp, sinh viên & điểm', icon: 'class' },
+      { path: '/teacher/schedule', label: 'Lịch hướng dẫn', desc: 'Lên lịch buổi hướng dẫn', icon: 'event' }
     ]
   };
   const shortcuts = computed(() => shortcutsByRole[userRole.value] || []);

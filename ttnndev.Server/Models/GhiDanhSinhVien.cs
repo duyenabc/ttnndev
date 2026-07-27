@@ -20,6 +20,16 @@ namespace ttnndev.Server.Models
 
         public int? MaLopChuyenTu { get; set; }
 
+        public int? MaNhom { get; set; }
+        [ForeignKey("MaNhom")]
+        public virtual Nhom? Nhom { get; set; }
+
+        [MaxLength(100)]
+        public string? ViTriThucTap { get; set; }
+
+        [MaxLength(200)]
+        public string? DonViThucTap { get; set; }
+
         [Required]
         [MaxLength(20)]
         public string TrangThaiThucTap { get; set; } = "DangThucTap"; // ChoGhiDanh, DangThucTap, DungThucTap, HoanThanh
