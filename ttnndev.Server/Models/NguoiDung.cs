@@ -24,7 +24,7 @@ namespace ttnndev.Server.Models
         public string HoTen { get; set; }
 
         [MaxLength(20)]
-        public string SoDienThoai { get; set; }
+        public string? SoDienThoai { get; set; }
 
         [Required]
         [MaxLength(20)]
@@ -35,7 +35,7 @@ namespace ttnndev.Server.Models
         public string TrangThaiTaiKhoan { get; set; } = "Nhap";
 
         [MaxLength(256)]
-        public string MatKhauHash { get; set; }
+        public string? MatKhauHash { get; set; }
 
         // BIT chuyển thành BOOLEAN (bool)
         public bool BuocDoiMatKhau { get; set; } = false;
@@ -47,8 +47,9 @@ namespace ttnndev.Server.Models
 
         public DateTimeOffset TokenValidFrom { get; set; } = DateTimeOffset.UtcNow;
 
-        [MaxLength(500)]
-        public string AnhDaiDien { get; set; }
+        // Lưu URL hoặc data URL ảnh đại diện (không giới hạn độ dài)
+        [Column(TypeName = "text")]
+        public string? AnhDaiDien { get; set; }
 
         public DateTimeOffset NgayTao { get; set; } = DateTimeOffset.UtcNow;
 

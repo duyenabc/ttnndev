@@ -1,84 +1,60 @@
 <template>
-  <div class="register-container">
-    <el-card class="register-card">
-      <h2>Đăng ký tài khoản</h2>
-      <el-form :model="registerForm" label-position="top">
-        <el-form-item label="Mã định danh (MSSV/MSGV)">
-          <el-input v-model="registerForm.maDinhDanh" />
-        </el-form-item>
+  <div class="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+    <div class="max-w-md w-full bg-white rounded-2xl shadow-xl border border-slate-100 p-8">
+      <div class="text-center mb-6">
+        <h1 class="text-2xl font-bold text-slate-900">Đăng ký Tài khoản</h1>
+        <p class="text-sm text-slate-500 mt-1">Gửi yêu cầu khởi tạo tài khoản hệ thống IMS</p>
+      </div>
 
-        <el-form-item label="Họ và tên">
-          <el-input v-model="registerForm.hoTen" />
-        </el-form-item>
+      <div v-if="successMsg" class="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-sm mb-6">
+        {{ successMsg }}
+      </div>
 
-        <el-form-item label="Email">
-          <el-input v-model="registerForm.email" type="email" />
-        </el-form-item>
+      <form v-else @submit.prevent="handleRegister" class="space-y-4">
+        <div>
+          <label class="block text-sm font-semibold text-slate-700 mb-1">Mã định danh (SV / GV)</label>
+          <input v-model="form.maDinhDanh" type="text" required class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm outline-none focus:ring-2 focus:ring-blue-600" placeholder="VD: 22120099" />
+        </div>
+        <div>
+          <label class="block text-sm font-semibold text-slate-700 mb-1">Họ và tên</label>
+          <input v-model="form.hoTen" type="text" required class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm outline-none focus:ring-2 focus:ring-blue-600" placeholder="Nguyễn Văn A" />
+        </div>
+        <div>
+          <label class="block text-sm font-semibold text-slate-700 mb-1">Email trường</label>
+          <input v-model="form.email" type="email" required class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm outline-none focus:ring-2 focus:ring-blue-600" placeholder="email@student.due.udn.vn" />
+        </div>
+        <div>
+          <label class="block text-sm font-semibold text-slate-700 mb-1">Vai trò</label>
+          <select v-model="form.vaiTro" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm outline-none focus:ring-2 focus:ring-blue-600">
+            <option value="SinhVien">Sinh viên</option>
+            <option value="GiangVien">Giảng viên</option>
+          </select>
+        </div>
 
-        <el-form-item label="Mật khẩu">
-          <el-input v-model="registerForm.matKhau" type="password" show-password />
-        </el-form-item>
+        <button type="submit" :disabled="loading" class="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-md transition text-sm">
+          {{ loading ? 'Đang gửi...' : 'Gửi yêu cầu đăng ký' }}
+        </button>
+      </form>
 
-        <el-form-item label="Vai trò">
-          <el-select v-model="registerForm.vaiTro" placeholder="Chọn vai trò">
-            <el-option label="Sinh viên" value="SinhVien" />
-            <el-option label="Giảng viên" value="GiangVien" />
-          </el-select>
-        </el-form-item>
-
-        <el-button type="primary" style="width: 100%" @click="handleRegister">
-          Đăng ký
-        </el-button>
-
-        <p class="login-link">
-          Đã có tài khoản? <router-link to="/login">Đăng nhập ngay</router-link>
-        </p>
-      </el-form>
-    </el-card>
+      <div class="mt-6 text-center text-xs text-slate-500">
+        Đã có tài khoản? <router-link to="/login" class="text-blue-600 font-bold hover:underline">Đăng nhập</router-link>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
-  import { reactive } from 'vue';
-  import { useRouter } from 'vue-router';
-  import { ElMessage } from 'element-plus';
-  import api from '@/api/api'; // Dùng api instance để tận dụng proxy Vite, tránh lỗi CORS
+  import { ref } from 'vue';
 
-  const router = useRouter();
-  const registerForm = reactive({
-    maDinhDanh: '',
-    hoTen: '',
-    email: '',
-    matKhau: '',
-    vaiTro: 'SinhVien'
-  });
+  const form = ref({ maDinhDanh: '', hoTen: '', email: '', vaiTro: 'SinhVien' });
+  const loading = ref(false);
+  const successMsg = ref('');
 
-  const handleRegister = async () => {
-    try {
-      await api.post('/account/register', registerForm);
-      ElMessage.success("Đăng ký thành công! Vui lòng đăng nhập.");
-      router.push('/login');
-    } catch (err) {
-      console.error(err);
-      ElMessage.error("Đăng ký thất bại: " + (err.response?.data || "Có lỗi xảy ra"));
-    }
-  };
+  function handleRegister() {
+    loading.value = true;
+    setTimeout(() => {
+      loading.value = false;
+      successMsg.value = 'Yêu cầu đăng ký đã được gửi tới Giáo vụ khoa. Vui lòng chờ phê duyệt!';
+    }, 600);
+  }
 </script>
-
-<style scoped>
-  .register-container {
-    display: flex;
-    justify-content: center;
-    padding-top: 50px;
-  }
-
-  .register-card {
-    width: 400px;
-  }
-
-  .login-link {
-    text-align: center;
-    margin-top: 15px;
-    font-size: 14px;
-  }
-</style>

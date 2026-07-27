@@ -22,6 +22,72 @@ namespace ttnndev.Server.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityAlwaysColumns(modelBuilder);
 
+            modelBuilder.Entity("ttnndev.Server.Models.AuditLog", b =>
+                {
+                    b.Property<long>("MaLog")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityAlwaysColumn(b.Property<long>("MaLog"));
+
+                    b.Property<string>("GiaTriCu")
+                        .HasColumnType("jsonb");
+
+                    b.Property<string>("GiaTriMoi")
+                        .HasColumnType("jsonb");
+
+                    b.Property<string>("HanhDong")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<int?>("MaBatch")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("MaDoiTuong")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("MaNguoiThucHien")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset>("ThoiDiem")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("MaLog");
+
+                    b.HasIndex("MaDoiTuong");
+
+                    b.HasIndex("MaNguoiThucHien");
+
+                    b.ToTable("AuditLog");
+                });
+
+            modelBuilder.Entity("ttnndev.Server.Models.BoMon", b =>
+                {
+                    b.Property<int>("MaBoMon")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityAlwaysColumn(b.Property<int>("MaBoMon"));
+
+                    b.Property<int>("MaKhoa")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("TenBoMon")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.HasKey("MaBoMon");
+
+                    b.HasIndex("MaKhoa");
+
+                    b.HasIndex("TenBoMon")
+                        .IsUnique();
+
+                    b.ToTable("BoMon");
+                });
+
             modelBuilder.Entity("ttnndev.Server.Models.CauHinhDiemLop", b =>
                 {
                     b.Property<int>("MaCauHinh")
@@ -44,6 +110,38 @@ namespace ttnndev.Server.Migrations
                     b.HasIndex("MaLop");
 
                     b.ToTable("CauHinhDiemLop");
+                });
+
+            modelBuilder.Entity("ttnndev.Server.Models.CotDiem", b =>
+                {
+                    b.Property<int>("MaCotDiem")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityAlwaysColumn(b.Property<int>("MaCotDiem"));
+
+                    b.Property<decimal>("DiemToiDa")
+                        .HasColumnType("numeric(5,2)");
+
+                    b.Property<int>("MaLop")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset>("NgayTao")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("TenCot")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<int>("ThuTu")
+                        .HasColumnType("integer");
+
+                    b.HasKey("MaCotDiem");
+
+                    b.HasIndex("MaLop");
+
+                    b.ToTable("CotDiem");
                 });
 
             modelBuilder.Entity("ttnndev.Server.Models.DeTai", b =>
@@ -107,7 +205,8 @@ namespace ttnndev.Server.Migrations
 
                     b.HasKey("MaDiem");
 
-                    b.HasIndex("MaGhiDanh");
+                    b.HasIndex("MaGhiDanh", "MaCotDiem")
+                        .IsUnique();
 
                     b.ToTable("DiemSinhVien");
                 });
@@ -119,6 +218,10 @@ namespace ttnndev.Server.Migrations
                         .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityAlwaysColumn(b.Property<int>("MaGhiDanh"));
+
+                    b.Property<string>("DonViThucTap")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
 
                     b.Property<string>("GhiDanhBang")
                         .IsRequired()
@@ -133,6 +236,9 @@ namespace ttnndev.Server.Migrations
                         .HasColumnType("integer");
 
                     b.Property<int?>("MaLopChuyenTu")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("MaNhom")
                         .HasColumnType("integer");
 
                     b.Property<int>("MaSinhVien")
@@ -153,13 +259,40 @@ namespace ttnndev.Server.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
 
+                    b.Property<string>("ViTriThucTap")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
                     b.HasKey("MaGhiDanh");
 
                     b.HasIndex("MaLop");
 
+                    b.HasIndex("MaNhom");
+
                     b.HasIndex("MaSinhVien");
 
                     b.ToTable("GhiDanhSinhVien");
+                });
+
+            modelBuilder.Entity("ttnndev.Server.Models.Khoa", b =>
+                {
+                    b.Property<int>("MaKhoa")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityAlwaysColumn(b.Property<int>("MaKhoa"));
+
+                    b.Property<string>("TenKhoa")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.HasKey("MaKhoa");
+
+                    b.HasIndex("TenKhoa")
+                        .IsUnique();
+
+                    b.ToTable("Khoa");
                 });
 
             modelBuilder.Entity("ttnndev.Server.Models.KyThucTap", b =>
@@ -280,6 +413,44 @@ namespace ttnndev.Server.Migrations
                     b.ToTable("LichHens");
                 });
 
+            modelBuilder.Entity("ttnndev.Server.Models.LichSuImport", b =>
+                {
+                    b.Property<int>("MaBatch")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityAlwaysColumn(b.Property<int>("MaBatch"));
+
+                    b.Property<int?>("MaLop")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("MaNguoiThucHien")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset>("NgayThucHien")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("SoGhiDe")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("SoHopLe")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("SoLoi")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("VaiTroImport")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.HasKey("MaBatch");
+
+                    b.HasIndex("MaNguoiThucHien");
+
+                    b.ToTable("LichSuImport");
+                });
+
             modelBuilder.Entity("ttnndev.Server.Models.LopThucTap", b =>
                 {
                     b.Property<int>("MaLop")
@@ -347,9 +518,7 @@ namespace ttnndev.Server.Migrations
                     NpgsqlPropertyBuilderExtensions.UseIdentityAlwaysColumn(b.Property<int>("MaNguoiDung"));
 
                     b.Property<string>("AnhDaiDien")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
+                        .HasColumnType("text");
 
                     b.Property<bool>("BuocDoiMatKhau")
                         .HasColumnType("boolean");
@@ -376,7 +545,6 @@ namespace ttnndev.Server.Migrations
                         .HasColumnType("character varying(20)");
 
                     b.Property<string>("MatKhauHash")
-                        .IsRequired()
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
 
@@ -390,7 +558,6 @@ namespace ttnndev.Server.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("SoDienThoai")
-                        .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
 
@@ -473,6 +640,35 @@ namespace ttnndev.Server.Migrations
                     b.ToTable("NhatKy");
                 });
 
+            modelBuilder.Entity("ttnndev.Server.Models.Nhom", b =>
+                {
+                    b.Property<int>("MaNhom")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityAlwaysColumn(b.Property<int>("MaNhom"));
+
+                    b.Property<int>("MaLop")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset>("NgayTao")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("SoThuTu")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("TenNhom")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.HasKey("MaNhom");
+
+                    b.HasIndex("MaLop");
+
+                    b.ToTable("Nhom");
+                });
+
             modelBuilder.Entity("ttnndev.Server.Models.NhomDiem", b =>
                 {
                     b.Property<int>("MaNhomDiem")
@@ -517,6 +713,69 @@ namespace ttnndev.Server.Migrations
                     b.ToTable("PhienChat");
                 });
 
+            modelBuilder.Entity("ttnndev.Server.Models.QuyenGiaoVu", b =>
+                {
+                    b.Property<int>("MaQuyenGiaoVu")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityAlwaysColumn(b.Property<int>("MaQuyenGiaoVu"));
+
+                    b.Property<int>("CapBoiGanNhat")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("MaGiaoVu")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset>("NgayCapGanNhat")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("QuyenQuanLyNguoiDung")
+                        .HasColumnType("boolean");
+
+                    b.HasKey("MaQuyenGiaoVu");
+
+                    b.HasIndex("MaGiaoVu")
+                        .IsUnique();
+
+                    b.ToTable("QuyenGiaoVu");
+                });
+
+            modelBuilder.Entity("ttnndev.Server.Models.RefreshToken", b =>
+                {
+                    b.Property<long>("MaRefreshToken")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityAlwaysColumn(b.Property<long>("MaRefreshToken"));
+
+                    b.Property<bool>("DaThuHoi")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("MaNguoiDung")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset>("ThoiDiemHetHan")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("ThoiDiemTao")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.HasKey("MaRefreshToken");
+
+                    b.HasIndex("MaNguoiDung");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique();
+
+                    b.ToTable("RefreshToken");
+                });
+
             modelBuilder.Entity("ttnndev.Server.Models.TaiLieu", b =>
                 {
                     b.Property<int>("Id")
@@ -551,6 +810,63 @@ namespace ttnndev.Server.Migrations
                     b.HasIndex("NguoiTaiLenId");
 
                     b.ToTable("TaiLieus");
+                });
+
+            modelBuilder.Entity("ttnndev.Server.Models.ThongTinCanBo", b =>
+                {
+                    b.Property<int>("MaThongTinCanBo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityAlwaysColumn(b.Property<int>("MaThongTinCanBo"));
+
+                    b.Property<int?>("MaBoMon")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("MaCanBo")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("MaKhoa")
+                        .HasColumnType("integer");
+
+                    b.HasKey("MaThongTinCanBo");
+
+                    b.HasIndex("MaBoMon");
+
+                    b.HasIndex("MaCanBo")
+                        .IsUnique();
+
+                    b.HasIndex("MaKhoa");
+
+                    b.ToTable("ThongTinCanBo");
+                });
+
+            modelBuilder.Entity("ttnndev.Server.Models.ThongTinSinhVien", b =>
+                {
+                    b.Property<int>("MaThongTinSinhVien")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityAlwaysColumn(b.Property<int>("MaThongTinSinhVien"));
+
+                    b.Property<string>("LopSinhHoat")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<int>("MaKhoa")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("MaSinhVien")
+                        .HasColumnType("integer");
+
+                    b.HasKey("MaThongTinSinhVien");
+
+                    b.HasIndex("MaKhoa");
+
+                    b.HasIndex("MaSinhVien")
+                        .IsUnique();
+
+                    b.ToTable("ThongTinSinhVien");
                 });
 
             modelBuilder.Entity("ttnndev.Server.Models.TieuChiRubric", b =>
@@ -608,7 +924,142 @@ namespace ttnndev.Server.Migrations
                     b.ToTable("TinNhanChat");
                 });
 
+            modelBuilder.Entity("ttnndev.Server.Models.YeuCauTaiKhoan", b =>
+                {
+                    b.Property<int>("MaYeuCau")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityAlwaysColumn(b.Property<int>("MaYeuCau"));
+
+                    b.Property<string>("LoaiYeuCau")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("LyDoTuChoi")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("LyDoYeuCau")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<int?>("MaBatch")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("MaDoiTuong")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("MaNguoiXuLy")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("MaNguoiYeuCau")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset>("NgayTao")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("NgayXuLy")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("TrangThai")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.HasKey("MaYeuCau");
+
+                    b.HasIndex("MaDoiTuong");
+
+                    b.HasIndex("MaNguoiXuLy");
+
+                    b.HasIndex("MaNguoiYeuCau");
+
+                    b.ToTable("YeuCauTaiKhoan");
+                });
+
+            modelBuilder.Entity("ttnndev.Server.Models.YeuCauXacThuc", b =>
+                {
+                    b.Property<int>("MaYeuCau")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityAlwaysColumn(b.Property<int>("MaYeuCau"));
+
+                    b.Property<bool>("DaSuDung")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("LoaiYeuCau")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<int>("MaNguoiDung")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset>("ThoiDiemHetHan")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("ThoiDiemTao")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.HasKey("MaYeuCau");
+
+                    b.HasIndex("MaNguoiDung");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique();
+
+                    b.ToTable("YeuCauXacThuc");
+                });
+
+            modelBuilder.Entity("ttnndev.Server.Models.AuditLog", b =>
+                {
+                    b.HasOne("ttnndev.Server.Models.NguoiDung", "DoiTuong")
+                        .WithMany()
+                        .HasForeignKey("MaDoiTuong")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("ttnndev.Server.Models.NguoiDung", "NguoiThucHien")
+                        .WithMany()
+                        .HasForeignKey("MaNguoiThucHien")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("DoiTuong");
+
+                    b.Navigation("NguoiThucHien");
+                });
+
+            modelBuilder.Entity("ttnndev.Server.Models.BoMon", b =>
+                {
+                    b.HasOne("ttnndev.Server.Models.Khoa", "Khoa")
+                        .WithMany()
+                        .HasForeignKey("MaKhoa")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Khoa");
+                });
+
             modelBuilder.Entity("ttnndev.Server.Models.CauHinhDiemLop", b =>
+                {
+                    b.HasOne("ttnndev.Server.Models.LopThucTap", "LopThucTap")
+                        .WithMany()
+                        .HasForeignKey("MaLop")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("LopThucTap");
+                });
+
+            modelBuilder.Entity("ttnndev.Server.Models.CotDiem", b =>
                 {
                     b.HasOne("ttnndev.Server.Models.LopThucTap", "LopThucTap")
                         .WithMany()
@@ -638,6 +1089,11 @@ namespace ttnndev.Server.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("ttnndev.Server.Models.Nhom", "Nhom")
+                        .WithMany()
+                        .HasForeignKey("MaNhom")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("ttnndev.Server.Models.NguoiDung", "SinhVien")
                         .WithMany()
                         .HasForeignKey("MaSinhVien")
@@ -645,6 +1101,8 @@ namespace ttnndev.Server.Migrations
                         .IsRequired();
 
                     b.Navigation("LopThucTap");
+
+                    b.Navigation("Nhom");
 
                     b.Navigation("SinhVien");
                 });
@@ -666,6 +1124,17 @@ namespace ttnndev.Server.Migrations
                     b.Navigation("GiangVien");
 
                     b.Navigation("SinhVien");
+                });
+
+            modelBuilder.Entity("ttnndev.Server.Models.LichSuImport", b =>
+                {
+                    b.HasOne("ttnndev.Server.Models.NguoiDung", "NguoiThucHien")
+                        .WithMany()
+                        .HasForeignKey("MaNguoiThucHien")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("NguoiThucHien");
                 });
 
             modelBuilder.Entity("ttnndev.Server.Models.LopThucTap", b =>
@@ -698,11 +1167,44 @@ namespace ttnndev.Server.Migrations
                     b.Navigation("GhiDanh");
                 });
 
+            modelBuilder.Entity("ttnndev.Server.Models.Nhom", b =>
+                {
+                    b.HasOne("ttnndev.Server.Models.LopThucTap", "LopThucTap")
+                        .WithMany()
+                        .HasForeignKey("MaLop")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("LopThucTap");
+                });
+
             modelBuilder.Entity("ttnndev.Server.Models.NhomDiem", b =>
                 {
                     b.HasOne("ttnndev.Server.Models.CauHinhDiemLop", null)
                         .WithMany("NhomDiems")
                         .HasForeignKey("CauHinhDiemLopMaCauHinh");
+                });
+
+            modelBuilder.Entity("ttnndev.Server.Models.QuyenGiaoVu", b =>
+                {
+                    b.HasOne("ttnndev.Server.Models.NguoiDung", "GiaoVu")
+                        .WithMany()
+                        .HasForeignKey("MaGiaoVu")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("GiaoVu");
+                });
+
+            modelBuilder.Entity("ttnndev.Server.Models.RefreshToken", b =>
+                {
+                    b.HasOne("ttnndev.Server.Models.NguoiDung", "NguoiDung")
+                        .WithMany()
+                        .HasForeignKey("MaNguoiDung")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("NguoiDung");
                 });
 
             modelBuilder.Entity("ttnndev.Server.Models.TaiLieu", b =>
@@ -716,6 +1218,50 @@ namespace ttnndev.Server.Migrations
                     b.Navigation("NguoiTaiLen");
                 });
 
+            modelBuilder.Entity("ttnndev.Server.Models.ThongTinCanBo", b =>
+                {
+                    b.HasOne("ttnndev.Server.Models.BoMon", "BoMon")
+                        .WithMany()
+                        .HasForeignKey("MaBoMon");
+
+                    b.HasOne("ttnndev.Server.Models.NguoiDung", "CanBo")
+                        .WithMany()
+                        .HasForeignKey("MaCanBo")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ttnndev.Server.Models.Khoa", "Khoa")
+                        .WithMany()
+                        .HasForeignKey("MaKhoa")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("BoMon");
+
+                    b.Navigation("CanBo");
+
+                    b.Navigation("Khoa");
+                });
+
+            modelBuilder.Entity("ttnndev.Server.Models.ThongTinSinhVien", b =>
+                {
+                    b.HasOne("ttnndev.Server.Models.Khoa", "Khoa")
+                        .WithMany()
+                        .HasForeignKey("MaKhoa")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ttnndev.Server.Models.NguoiDung", "SinhVien")
+                        .WithMany()
+                        .HasForeignKey("MaSinhVien")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Khoa");
+
+                    b.Navigation("SinhVien");
+                });
+
             modelBuilder.Entity("ttnndev.Server.Models.TinNhanChat", b =>
                 {
                     b.HasOne("ttnndev.Server.Models.PhienChat", "PhienChat")
@@ -725,6 +1271,42 @@ namespace ttnndev.Server.Migrations
                         .IsRequired();
 
                     b.Navigation("PhienChat");
+                });
+
+            modelBuilder.Entity("ttnndev.Server.Models.YeuCauTaiKhoan", b =>
+                {
+                    b.HasOne("ttnndev.Server.Models.NguoiDung", "DoiTuong")
+                        .WithMany()
+                        .HasForeignKey("MaDoiTuong")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("ttnndev.Server.Models.NguoiDung", "NguoiXuLy")
+                        .WithMany()
+                        .HasForeignKey("MaNguoiXuLy")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("ttnndev.Server.Models.NguoiDung", "NguoiYeuCau")
+                        .WithMany()
+                        .HasForeignKey("MaNguoiYeuCau")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("DoiTuong");
+
+                    b.Navigation("NguoiXuLy");
+
+                    b.Navigation("NguoiYeuCau");
+                });
+
+            modelBuilder.Entity("ttnndev.Server.Models.YeuCauXacThuc", b =>
+                {
+                    b.HasOne("ttnndev.Server.Models.NguoiDung", "NguoiDung")
+                        .WithMany()
+                        .HasForeignKey("MaNguoiDung")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("NguoiDung");
                 });
 
             modelBuilder.Entity("ttnndev.Server.Models.CauHinhDiemLop", b =>

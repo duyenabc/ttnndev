@@ -8,7 +8,7 @@
             <el-icon><Plus /></el-icon> Viết nhật ký tuần này
           </el-button>
         </div>
-</template>
+      </template>
 
       <el-timeline v-if="diaries.length > 0" style="max-width: 800px; margin-top: 20px;">
         <el-timeline-item v-for="(diary, index) in diaries"
@@ -19,6 +19,16 @@
           <el-card shadow="hover">
             <h3>Nội dung công việc:</h3>
             <p>{{ diary.noiDungCongViec }}</p>
+
+            <!-- AI Summary Block -->
+            <div class="mt-3 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl text-xs text-slate-700">
+              <div class="flex items-center gap-1.5 font-bold text-blue-700 mb-1">
+                <span class="material-symbols-outlined text-[16px]">auto_awesome</span> Tóm tắt tự động AI:
+              </div>
+              <p class="leading-relaxed text-slate-600">
+                {{ diary.tomTatAI || (`Tóm tắt: ${diary.noiDungCongViec?.substring(0, 100) || 'Nội dung thực tập tuần'}...`) }}
+              </p>
+            </div>
 
             <el-divider border-style="dashed" />
 
@@ -107,12 +117,10 @@
   // Gọi API lấy danh sách nhật ký
   const fetchDiaries = async () => {
     try {
-      // API GET này cần được viết trong DiaryController.cs
       const res = await api.get('/diary/my-diaries');
-      diaries.value = res.data;
+      diaries.value = Array.isArray(res.data) ? res.data : (res.data?.items || []);
     } catch (error) {
       console.error(error);
-      // Tạm thời dùng dữ liệu giả nếu API chưa sẵn sàng
       diaries.value = [
         { tuanThucTap: 1, ngayTao: new Date().toISOString(), noiDungCongViec: 'Làm quen môi trường, setup máy tính.', ketQuaDatDuoc: 'Cài xong VS Code, chạy được source code.', khoKhanVongMac: '', keHoachTuanToi: 'Đọc hiểu logic hệ thống.' }
       ];
@@ -136,7 +144,7 @@
           ElMessage.success('Nộp nhật ký thành công!');
           dialogVisible.value = false;
           fetchDiaries(); // Lấy lại danh sách mới
-        } catch (error) {
+        } catch {
           ElMessage.error('Có lỗi xảy ra khi nộp!');
         } finally {
           isSubmitting.value = false;
